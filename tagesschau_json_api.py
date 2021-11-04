@@ -17,7 +17,7 @@
 
 try: import json
 except ImportError: import simplejson as json
-import urllib2, logging, datetime, re
+import logging, datetime, re, urllib.request
 
 logger = logging.getLogger("plugin.video.tagesschau.api")
 
@@ -102,7 +102,7 @@ class VideoContent(object):
             tsformatted = str(None)      
         s = "VideoContent(tsid=" + self.tsid + ", title='" + self.title + "', timestamp=" + tsformatted + ", "\
             "duration=" + str(self.duration) + ", videourl=" + str(self.video_url('L')) + ", "\
-            "imageurl=" + str(self.image_url()) + ", description='" + unicode(self.description) + "')"
+            "imageurl=" + str(self.image_url()) + ", description='" + str(self.description) + "')"
         return s.encode('utf-8', 'ignore')
 
 
@@ -141,7 +141,7 @@ class LazyVideoContent(VideoContent):
     def _fetch_details(self):
         """Fetches videourls from detailsurl."""
         self._logger.info("fetching details from " + self.detailsurl)
-        handle = urllib2.urlopen(self.detailsurl)
+        handle = urllib.request.urlopen(self.detailsurl)
         jsondetails = json.load(handle)
         self._videourls = self._parser.parse_video_urls(jsondetails["fullvideo"][0]["mediadata"])       
         self._videoid = jsondetails["fullvideo"][0]["sophoraId"]
@@ -174,20 +174,20 @@ class VideoContentParser(object):
         title = jsonvideo["headline"]
         timestamp = self._parse_date(jsonvideo["broadcastDate"])
         if(timestamp):
-#            print '-'*20
-#            print timestamp
+#            print('-'*20)
+#            print(timestamp)
             title = title + timestamp.strftime(' vom %d.%m.%Y %H:%M')
         imageurls = {}
         if(len(jsonvideo["images"]) > 0):
             imageurls = self._parse_image_urls(jsonvideo["images"][0]["variants"])
         videourls = self.parse_video_urls(jsonvideo["mediadata"])
-        print videourls
+        print(videourls)
         # calculate duration using outMilli and inMilli, duration is not set in JSON
         if("inMilli" in jsonvideo and "outMilli" in jsonvideo):
             duration = (jsonvideo["outMilli"] - jsonvideo["inMilli"]) / 1000
         else:
             duration = None
-        #print title
+        #print(title)
         return VideoContent(tsid, title, timestamp, videourls, imageurls, duration)    
 
 
@@ -229,7 +229,7 @@ class VideoContentParser(object):
         """Parses the video mediadata JSON into a dict mapping variant name to URL."""
         variants = {}
         for jsonvariant in jsonvariants:
-            for name, url in jsonvariant.iteritems():
+            for name, url in jsonvariant.items():
                 variants[name] = url
         return variants
 
@@ -245,7 +245,7 @@ class VideoContentParser(object):
         """Parses the image variants JSON into a dict mapping variant name to URL.""" 
         variants = {}
         for jsonvariant in jsonvariants:
-            for name, url in jsonvariant.iteritems():
+            for name, url in jsonvariant.items():
                 variants[name] = url
         return variants
 
@@ -297,7 +297,7 @@ class VideoContentProvider(object):
         if("multimedia" in data):
             multimedia = data["multimedia"]
             if("tsInHundredSeconds" in multimedia[1]):  
-                #print multimedia[1]
+                #print(multimedia[1])
                 video = self._parser.parse_ts_100_sek(multimedia[1]["tsInHundredSeconds"])
         return video
 
@@ -330,7 +330,7 @@ class VideoContentProvider(object):
             videos.append(video)
 
         videos.append(self.tagesschau_in_100_sek())
-	videos.append(self._parser.parse_broadcast(data["latestBroadcast"], '%d.%m.%Y %H:%M'))
+        videos.append(self._parser.parse_broadcast(data["latestBroadcast"], '%d.%m.%Y %H:%M'))
 
         self._logger.info("found " + str(len(videos)) + " videos")              
         return videos
@@ -357,55 +357,55 @@ class JsonSource(object):
     
     def livestreams(self):
         """Returns the parsed JSON structure for livestreams."""
-        handle = urllib2.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemand100~_type-video.json")
+        handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemand100~_type-video.json")
         return json.loads(handle.read())
 
     def latest_videos(self):
         """Returns the parsed JSON structure for the latest videos."""        
-        handle = urllib2.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemand100~_type-video.json")
+        handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemand100~_type-video.json")
         return json.loads(handle.read())
 
     def dossiers(self):
         """Returns the parsed JSON structure for the dossiers."""        
-        handle = urllib2.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemanddossier100.json")
+        handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/video/ondemanddossier100.json")
         return json.loads(handle.read())
 
     def latest_broadcasts(self):
         """Returns the parsed JSON structure for the latest broadcasts."""        
-        handle = urllib2.urlopen("http://www.tagesschau.de/api/multimedia/sendung/letztesendungen100.json")
+        handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/sendung/letztesendungen100.json")
         return json.loads(handle.read())
 
     def archived_broadcasts(self):
         """Returns the parsed JSON structure for the archived broadcasts."""        
-        handle = urllib2.urlopen("http://www.tagesschau.de/api/multimedia/sendung/letztesendungen100~_week-true.json")
+        handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/sendung/letztesendungen100~_week-true.json")
         return json.loads(handle.read())
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s %(message)s')
     provider = VideoContentProvider(JsonSource())
     videos = provider.livestreams()
-    print "Livestreams:"     
+    print("Livestreams:")
     for video in videos:
-        print video
+        print(video)
     video = provider.tagesschau_in_100_sek()
-    print "100 Sek Videos"     
-    print video
+    print("100 Sek Videos")
+    print(video)
     #if True:
     #    sys.exit(0)
     videos = provider.latest_videos()
-    print "Aktuelle Videos"     
+    print("Aktuelle Videos")
     for video in videos:
-        print video
+        print(video)
     videos = provider.dossiers()
-    print "Dossier"
+    print("Dossier")
     for video in videos:
-        print video
+        print(video)
     videos = provider.latest_broadcasts()
-    print "Aktuelle Sendungen"
+    print("Aktuelle Sendungen")
     for video in videos:
-        print video
+        print(video)
     videos = provider.archived_broadcasts()
-    print "Sendungsarchiv"
+    print("Sendungsarchiv")
     for video in videos:
-        print video   
+        print(video)
     
