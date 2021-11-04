@@ -17,7 +17,7 @@
 
 try: import json
 except ImportError: import simplejson as json
-import logging, datetime, re, urllib.request
+import logging, datetime, re, urllib.request, xbmc
 
 logger = logging.getLogger("plugin.video.tagesschau.api")
 
@@ -33,7 +33,7 @@ class VideoContent(object):
         duration: An integer representing the length of the video in seconds
         description: A String describing the video content
     """       
-    def __init__(self, tsid, title, timestamp, videourls=None, imageurls=None, duration=None, description=None):
+    def __init__(self, tsid, title, timestamp, videourls=None, imageurls=None, duration=None, description=""):
         """Inits VideoContent with the given values."""
         self.tsid = tsid
         self.title = title
@@ -118,7 +118,7 @@ class LazyVideoContent(VideoContent):
         duration: An integer representing the length of the video in seconds
         description: A String describing the video content
     """  
-    def __init__(self, tsid, title, timestamp, detailsurl, imageurls=None, duration=None, description=None):
+    def __init__(self, tsid, title, timestamp, detailsurl, imageurls=None, duration=None, description=""):
         VideoContent.__init__(self, tsid, title, timestamp, None, imageurls, duration, description)
         self.detailsurl = detailsurl
         self.detailsfetched = False
@@ -174,20 +174,20 @@ class VideoContentParser(object):
         title = jsonvideo["headline"]
         timestamp = self._parse_date(jsonvideo["broadcastDate"])
         if(timestamp):
-#            print('-'*20)
-#            print(timestamp)
+            #xbmc.log('-'*20)
+            #xbmc.log(timestamp)
             title = title + timestamp.strftime(' vom %d.%m.%Y %H:%M')
         imageurls = {}
         if(len(jsonvideo["images"]) > 0):
             imageurls = self._parse_image_urls(jsonvideo["images"][0]["variants"])
         videourls = self.parse_video_urls(jsonvideo["mediadata"])
-        print(videourls)
+        #xbmc.log(str(videourls))
         # calculate duration using outMilli and inMilli, duration is not set in JSON
         if("inMilli" in jsonvideo and "outMilli" in jsonvideo):
             duration = (jsonvideo["outMilli"] - jsonvideo["inMilli"]) / 1000
         else:
             duration = None
-        #print(title)
+        #xbmc.log(title)
         return VideoContent(tsid, title, timestamp, videourls, imageurls, duration)    
 
 
@@ -200,7 +200,7 @@ class VideoContentParser(object):
             title = title + timestamp.strftime(' vom ' + timestring)
         imageurls = self._parse_image_urls(jsonbroadcast["images"][0]["variants"])
         details = jsonbroadcast["details"]
-        description = None
+        description = ""
         if("topics" in jsonbroadcast):
             description = ", ".join(jsonbroadcast["topics"])
         # return LazyVideoContent that retrieves details JSON lazily
@@ -297,7 +297,7 @@ class VideoContentProvider(object):
         if("multimedia" in data):
             multimedia = data["multimedia"]
             if("tsInHundredSeconds" in multimedia[1]):  
-                #print(multimedia[1])
+                #xbmc.log(multimedia[1])
                 video = self._parser.parse_ts_100_sek(multimedia[1]["tsInHundredSeconds"])
         return video
 
@@ -384,28 +384,28 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s %(message)s')
     provider = VideoContentProvider(JsonSource())
     videos = provider.livestreams()
-    print("Livestreams:")
+    xbmc.log("Livestreams:")
     for video in videos:
-        print(video)
+        xbmc.log(video)
     video = provider.tagesschau_in_100_sek()
-    print("100 Sek Videos")
-    print(video)
+    xbmc.log("100 Sek Videos")
+    xbmc.log(video)
     #if True:
     #    sys.exit(0)
     videos = provider.latest_videos()
-    print("Aktuelle Videos")
+    xbmc.log("Aktuelle Videos")
     for video in videos:
-        print(video)
+        xbmc.log(video)
     videos = provider.dossiers()
-    print("Dossier")
+    xbmc.log("Dossier")
     for video in videos:
-        print(video)
+        xbmc.log(video)
     videos = provider.latest_broadcasts()
-    print("Aktuelle Sendungen")
+    xbmc.log("Aktuelle Sendungen")
     for video in videos:
-        print(video)
+        xbmc.log(video)
     videos = provider.archived_broadcasts()
-    print("Sendungsarchiv")
+    xbmc.log("Sendungsarchiv")
     for video in videos:
-        print(video)
+        xbmc.log(video)
     
