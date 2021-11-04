@@ -229,7 +229,7 @@ class VideoContentParser(object):
         """Parses the video mediadata JSON into a dict mapping variant name to URL."""
         variants = {}
         for jsonvariant in jsonvariants:
-            for name, url in jsonvariant.items():
+            for name, url in list(jsonvariant.items()):
                 variants[name] = url
         return variants
 
@@ -239,13 +239,13 @@ class VideoContentParser(object):
             return None
         # ignore time zone part
         isodate = isodate[:-6]
-        return datetime.datetime(*map(int, re.split('[^\d]', isodate)))
+        return datetime.datetime(*list(map(int, re.split('[^\d]', isodate))))
 
     def _parse_image_urls(self, jsonvariants):
         """Parses the image variants JSON into a dict mapping variant name to URL.""" 
         variants = {}
         for jsonvariant in jsonvariants:
-            for name, url in jsonvariant.items():
+            for name, url in list(jsonvariant.items()):
                 variants[name] = url
         return variants
 
