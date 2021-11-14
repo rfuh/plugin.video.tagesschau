@@ -381,32 +381,3 @@ class JsonSource(object):
         handle = urllib.request.urlopen("http://www.tagesschau.de/api/multimedia/sendung/letztesendungen100~_week-true.json")
         return json.loads(handle.read())
         
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s %(message)s')
-    provider = VideoContentProvider(JsonSource())
-    videos = provider.livestreams()
-    xbmc.log("Livestreams:")
-    for video in videos:
-        xbmc.log(video)
-    video = provider.tagesschau_in_100_sek()
-    xbmc.log("100 Sek Videos")
-    xbmc.log(video)
-    #if True:
-    #    sys.exit(0)
-    videos = provider.latest_videos()
-    xbmc.log("Aktuelle Videos")
-    for video in videos:
-        xbmc.log(video)
-    videos = provider.dossiers()
-    xbmc.log("Dossier")
-    for video in videos:
-        xbmc.log(video)
-    videos = provider.latest_broadcasts()
-    xbmc.log("Aktuelle Sendungen")
-    for video in videos:
-        xbmc.log(video)
-    videos = provider.archived_broadcasts()
-    xbmc.log("Sendungsarchiv")
-    for video in videos:
-        xbmc.log(video)
-    
