@@ -136,7 +136,7 @@ def tagesschau():
                    # try to download and and convert subtitles to local SRT file
                    # as of October 2014, only subtiles for complete "tagesschau" broadcasts are available
                    # subtitles_url = 'http://www.tagesschau.de/multimedia/video/video-29351~subtitle.html'
-                   subtitles_url = 'http://www.tagesschau.de/multimedia/video/' + str(video.video_id()) + '~subtitle.html'        
+                   subtitles_url = 'https://www.tagesschau.de/multimedia/video/' + str(video.video_id()) + '~subtitle.html'        
                    subtitles_file = download_subtitles(subtitles_url, subtitles_dir)
                    
        listitem = xbmcgui.ListItem(path=url)
