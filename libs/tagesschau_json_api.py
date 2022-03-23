@@ -142,7 +142,17 @@ class LazyVideoContent(VideoContent):
     def _fetch_details(self):
         """Fetches videourls from detailsurl."""
         self._logger.info("fetching details from " + self.detailsurl)
-        handle = urllib.request.urlopen(self.detailsurl)
+        try:
+            handle = urllib.urlopen(self.detailsurl)
+        except urllib.HTTPError as e:
+            # check if we need to switch to https.
+            if self.detailsurl.startswith("http:"):
+                self._logger.info("failed. try with https instead")
+                handle = urllib.urlopen("https:" + self.detailsurl[5:])
+            else:
+                # whatever. Let somebody else handle that (in fact nobody will - kodi will just show an error)
+                raise e
+
         jsondetails = json.load(handle)
         self._videourls = self._parser.parse_video_urls(jsondetails["fullvideo"][0]["mediadata"])
         self._videoid = jsondetails["fullvideo"][0]["sophoraId"]
