@@ -145,8 +145,13 @@ class LazyVideoContent(VideoContent):
         try:
             handle = urllib.urlopen(self.detailsurl)
         except urllib.HTTPError as e:
-            # check if we need to switch to https.
-            if self.detailsurl.startswith("http:"):
+            # check if we need to follow redirect
+            if (e.code >= 300 and e.code < 400 and 'Location' in e.headers):
+                newUrl = e.headers['Location']
+                self._logger.info("redirected to " + newUrl)
+                handle = urllib.urlopen(newUrl)
+            # otherwise check if switch to https helps
+            elif self.detailsurl.startswith("http:"):
                 self._logger.info("failed. try with https instead")
                 handle = urllib.urlopen("https:" + self.detailsurl[5:])
             else:
